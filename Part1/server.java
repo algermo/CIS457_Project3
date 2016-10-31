@@ -34,20 +34,22 @@ class ClientHandler implements Runnable {
 		}
 
 		public void run(){
-			try {	
-	
+			try {
 				DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
 				BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-		
+                while(true){
 				String message = inFromClient.readLine();
 				System.out.println("The client said " + message);
-				clientSocket.close();
+                }
+				//clientSocket.close();
+                
 
 			} catch(Exception e) {
 
 				System.out.println("got an exception");
 
 			}
+
 		}
 
 		public void broadcast(String message) {
