@@ -43,10 +43,13 @@ class ClientHandler implements Runnable {
 				DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
 				BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 while(true){
-				String message = inFromClient.readLine();
-				System.out.println("The client said " + message);
+					String message = inFromClient.readLine();
+					if(message.equals("client list")) {
+						String reply = getClientList();
+						// send reply to the client
+					}
+					System.out.println("The client said " + message);
                 }
-				//clientSocket.close();
                 
 
 			} catch(Exception e) {
@@ -65,10 +68,13 @@ class ClientHandler implements Runnable {
 
 		}
 
-		public void getClientList() {
+		public String getClientList() {
+			String clientList;
 			for(int i = 0; i < clients.length; i++) {
-			System.out.println("Address of Client " + i + ": " + clients.get(i).getInetAddress().getAddress());
+				System.out.println("Address of Client " + i + ": " + clients.get(i).getInetAddress().getAddress());
+				clientList += "Client " + i + "\n";
 			}
+			return clientList;
 		}
 
 		public void kickUser() {
