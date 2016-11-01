@@ -28,10 +28,15 @@ class server {
 
 class ClientHandler implements Runnable {
 
+		ArrayList<Socket> clients = new ArrayList<Socket>();
+
 		Socket clientSocket;
 		ClientHandler(Socket connection) {
 			clientSocket = connection;
+			clients.add(clientSocket);
 		}
+		
+		getClientList();
 
 		public void run(){
 			try {
@@ -61,7 +66,9 @@ class ClientHandler implements Runnable {
 		}
 
 		public void getClientList() {
-
+			for(int i = 0; i < clients.length; i++) {
+			System.out.println("Address of Client " + i + ": " + clients.get(i).getInetAddress().getAddress());
+			}
 		}
 
 		public void kickUser() {
