@@ -20,6 +20,8 @@ class client {
 			+ "s USERNAME sends a message to a specified user connected \n" 
 			+ "c prints the list of users connected \n" 
 			+ "h lists this set of commands again \n";
+			
+	public String username;
 
 	public static void main(String args[]) throws Exception {
 		
@@ -27,11 +29,16 @@ class client {
 		// creates socket, specifies address and port number, and goes out
 		// and tries to make connection
 		Socket clientSocket = new Socket("127.0.0.1", 9876);
+		
+		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+		
+		System.out.println("Enter a username: ")
+		username = inFromUser.readLine();
+		outToServer.writeBytes("u " + username "\n");
+		
         while(true){
-            
-			DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-			BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-			BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 			
 			System.out.println("Enter a message: ");
 			String message = inFromUser.readLine();
