@@ -31,8 +31,8 @@ class client {
 			
 			System.out.println("Enter a message: ");
 			String message = inFromUser.readLine();
-			outToServer.writeBytes(username + " " + message + '\n');
-			
+			// outToServer.writeBytes(username + " " + message + '\n');
+			outToServer.writeBytes(message + '\n');
 			String recvMessage = inFromServer.readLine();
 			System.out.println(recvMessage);
 			

@@ -51,12 +51,13 @@ class ClientHandler implements Runnable {
 	}
 		
 
-	public void run(){
-		getClientList();
+	public void run() {
+		
 		try {
 			
 			DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			
 			while(true){
 				
 				// receive message from user
@@ -65,66 +66,91 @@ class ClientHandler implements Runnable {
 				// process the message the user sent
 				processCommand(message);
 				System.out.println(message);
+				outToClient.writeBytes("Processed.\n");
 			}
 			
 		} catch(Exception e) {
 			
-			System.out.println("got an exception");
+			System.out.println("Something went wrong in run. \n");
 		}
 
 	}
 		
-	public String processCommand(String command) {
+	public void processCommand(String command) {
 		
 		String username;
 		String message;
 
 		String[] com = command.split(" ");
 		
-		switch(com[1]) {
-			case "u":
-				// set username for client
-				username = com[2];
-				addUser(username);
-			case "h":
-				// print out help to user
-				singleMessage(user, cmd);
-			case "Q":
-				// close this socket 
-				kickUser(user);
-			case "b":
-				// broadcast the message
-				message = command.substring(3, command.length()-1);
-				broadcast(message);
-			case "s":
-				// send single message to user
-				username = com[2];
-				message = command.substring(3 + username.length(), command.length()-1);
-				singleMessage(username, message);
-			case "c":
-				// send client list to user
-				String listOfClients = getClientList();
-				singleMessage(user, listOfClients);
-			default:
-				// inform user that their command doesn't work
-				String incorrectCmd = "Please enter a correct command. \n";
-				singleMessage(user, incorrectCmd);
+		try {
+			
+			switch(com[0]) {
+				case "u":
+					// set username for client
+					username = com[1];
+					System.out.println("Adding user: " + username + "\n");
+					addUser(username);
+					break;
+				case "h":
+					// print out help to user
+					singleMessage(user, cmd);
+					break;
+				case "Q":
+					// close this socket 
+					kickUser(user);
+					break;
+				case "b":
+					// broadcast the message
+					message = command.substring(3, command.length()-1);
+					broadcast(message);
+					break;
+				case "s":
+					// send single message to user
+					username = com[1];
+					message = command.substring(3 + username.length(), command.length()-1);
+					singleMessage(username, message);
+					break;
+				case "c":
+					// send client list to user
+					String listOfClients = getClientList();
+					System.out.println(listOfClients);
+					singleMessage(user, listOfClients);
+					break;
+				default:
+					// inform user that their command doesn't work
+					String incorrectCmd = "Please enter a correct command. \n";
+					singleMessage(user, incorrectCmd);
+					break;
+			}
+			
+		} catch (Exception e) {
+			
+			System.out.println("Something went wrong in processCommand. \n");
+			
 		}
 	}
 
-	public void broadcast(String message) {
+	public void broadcast(String message) throws Exception {
 		
 	}
 
 	public void singleMessage(String username, String message) {
 		
-		// find the socket of the requested user
-		Socket userSocket;
-		userSocket = clientList.get(username);
-		DataOutputStream outToClient = new DataOutputStream(userSocket.getOutputStream());
-		
-		// send message out on this socket
-		outToClient.write(message);
+		try {
+			// find the socket of the requested user
+			Socket userSocket;
+			userSocket = clientList.get(username);
+			DataOutputStream outToClient = new DataOutputStream(userSocket.getOutputStream());
+			
+			// send message out on this socket
+			outToClient.writeBytes(message);
+			
+		} catch (Exception e) {
+			
+			System.out.println("Something went wrong in singleMessage. \n");
+			
+		}
 	}
 
 	public String getClientList() {
@@ -157,7 +183,7 @@ class ClientHandler implements Runnable {
 		user = username;
 	}
 
-	public void kickUser(String username) {
+	public void kickUser(String username) throws Exception {
 		
 		// find the socket of the requested user
 		Socket userSocket;
