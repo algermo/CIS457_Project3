@@ -9,8 +9,11 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 class server {
+    
+    public static ConcurrentHashMap <String, Socket> clientList = new ConcurrentHashMap<String, Socket>();
 
 	public static void main(String args[]) throws Exception {
 
@@ -19,7 +22,7 @@ class server {
 
 			// list on socket and run thread for multiple connections
 			Socket clientSocket = listenSocket.accept();	
-			Runnable r = new ClientHandler(clientSocket);
+			Runnable r = new ClientHandler(clientSocket, clientList);
 			Thread t = new Thread(r);
 			t.start();
 		}
@@ -28,17 +31,15 @@ class server {
 }
 
 class ClientHandler implements Runnable {
-
-		public ArrayList<Socket> clients = new ArrayList<Socket>();
-		public HashMap <String, Socket> clientList = new HashMap<String, Socket>();
+    public ConcurrentHashMap <String, Socket> clientList = new ConcurrentHashMap<String, Socket>();
+    public String user;
 
 		Socket clientSocket;
-		ClientHandler(Socket connection) {
+		ClientHandler(Socket connection, ConcurrentHashMap <String, Socket> clients) {
 			clientSocket = connection;
-			clients.add(clientSocket);
+            clientList = clients;
 		}
 		
-        //getClientList();
 
 		public void run(){
             getClientList();
@@ -51,7 +52,9 @@ class ClientHandler implements Runnable {
 					// we can change the keywords based on what we want
 					// formatting for keywords will be made in client
 					processCommand(message);
-					System.out.println("The client said " + message);
+                    System.out.println(getClientList());
+                    
+					System.out.println(message);
                 }
                 
 
@@ -71,7 +74,7 @@ class ClientHandler implements Runnable {
 				case "u":
 					// set username for client
 					username = com[1];
-					// addUser(username, client)
+                    addUser(username);
 				case "h":
 					// print out help to user
 				case "Q":
@@ -79,7 +82,7 @@ class ClientHandler implements Runnable {
 					// kickUser(username)
 				case "b":
 					// broadcast the message
-					// broadcast(message)
+					 broadcast(message)
 				case "s":
 					// send single message to user
 					username = com[1];
@@ -93,7 +96,9 @@ class ClientHandler implements Runnable {
 		}
 
 		public void broadcast(String message) {
-
+            for(int i = 0; i < clientList.size(); i++){
+            
+            }
 		}
 
 		public void singleMessage(String username, String message) {
@@ -107,7 +112,7 @@ class ClientHandler implements Runnable {
 			for(int j = 0; j < temp.size(); j++) {
 				cTemp[j] = temp.toArray()[j].toString();
 			}
-			cTemp = temp.toArray();
+			//cTemp = temp.toArray();
 			for(int i = 0; i < clientList.size(); i++) {
 				cList += cTemp[i] + "\n";
 			}
@@ -116,6 +121,7 @@ class ClientHandler implements Runnable {
 		
 		public void addUser(String username) {
 			clientList.put(username, clientSocket);
+            user = username;
 		}
 
 		public void kickUser() {

@@ -42,7 +42,7 @@ class client {
 			
 			System.out.println("Enter a message: ");
 			String message = inFromUser.readLine();
-			outToServer.writeBytes(message + '\n');
+			outToServer.writeBytes(username + ": " + message + '\n');
 			
         }
 	}
