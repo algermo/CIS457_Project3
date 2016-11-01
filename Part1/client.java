@@ -12,22 +12,11 @@ import java.net.*;
 import java.awt.*;
 
 class client {
-
-	/** The Initial Set of Commands **/
-	public String cmd = "Q means QUIT\n"
-			+ "u sets your username \n"
-			+ "b broadcasts a message to all users connected \n"
-			+ "s USERNAME sends a message to a specified user connected \n" 
-			+ "c prints the list of users connected \n" 
-			+ "h lists this set of commands again \n";
 			
 	public static String username;
 
 	public static void main(String args[]) throws Exception {
 		
-		// does all network setup for us
-		// creates socket, specifies address and port number, and goes out
-		// and tries to make connection
 		Socket clientSocket = new Socket("127.0.0.1", 9876);
 		
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
@@ -42,21 +31,12 @@ class client {
 			
 			System.out.println("Enter a message: ");
 			String message = inFromUser.readLine();
-			outToServer.writeBytes(username + ": " + message + '\n');
+			outToServer.writeBytes(username + " " + message + '\n');
+			
+			String recvMessage = inFromServer.readLine();
+			System.out.println(recvMessage);
 			
         }
-	}
-
-	public void broadcast(String message) {
-
-	}
-
-	public void singleMessage(String message) {
-
-	}
-
-	public void getClientList() {
-		
 	}
 
 }
