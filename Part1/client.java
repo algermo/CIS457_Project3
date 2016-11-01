@@ -45,7 +45,7 @@ class client {
 	}
 
 }
-
+/*
 public class ClientGUI extends JFrame {
 	
 	private JButton sendBroadcast;
@@ -63,3 +63,4 @@ public class ClientGUI extends JFrame {
 	}
  
 }
+*/

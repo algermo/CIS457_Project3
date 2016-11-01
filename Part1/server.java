@@ -8,6 +8,7 @@
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 class server {
 
@@ -36,9 +37,10 @@ class ClientHandler implements Runnable {
 			clients.add(clientSocket);
 		}
 		
-		getClientList();
+        //getClientList();
 
 		public void run(){
+            getClientList();
 			try {
 				DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
 				BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -69,8 +71,8 @@ class ClientHandler implements Runnable {
 		}
 
 		public String getClientList() {
-			String clientList;
-			for(int i = 0; i < clients.length; i++) {
+			String clientList = "";
+			for(int i = 0; i < clients.size(); i++) {
 				System.out.println("Address of Client " + i + ": " + clients.get(i).getInetAddress().getAddress());
 				clientList += "Client " + i + "\n";
 			}
