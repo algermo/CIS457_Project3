@@ -15,10 +15,11 @@ class client {
 
 	/** The Initial Set of Commands **/
 	public String cmd = "Q means QUIT\n"
+			+ "u sets your username \n"
 			+ "b broadcasts a message to all users connected \n"
-			+ "s USERNAME sends a message to a specified user connected \n" +
-			"c prints the list of users connected \n" +
-			"h lists this set of commands again \n";
+			+ "s USERNAME sends a message to a specified user connected \n" 
+			+ "c prints the list of users connected \n" 
+			+ "h lists this set of commands again \n";
 
 	public static void main(String args[]) throws Exception {
 		

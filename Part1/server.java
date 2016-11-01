@@ -50,26 +50,7 @@ class ClientHandler implements Runnable {
 					// check what the message was
 					// we can change the keywords based on what we want
 					// formatting for keywords will be made in client
-					if(message.contains("username")) {
-						// set username up as key in hash map
-						// addUser(message);
-					}
-					else if(message.equals("client list")) {
-						String reply = getClientList();
-						// send reply to the client
-					}
-					else if(message.contains("broadcast")) {
-						// send message as a broadcast
-						// broadcast(message);
-					}
-					else if(message.contains("single")) {
-						// send message to single client
-						// singleMessage(message);
-					}
-					else {
-						// client sent invalid text
-						// let them know and they can retry
-					}
+					processCommand(message);
 					System.out.println("The client said " + message);
                 }
                 
@@ -81,12 +62,40 @@ class ClientHandler implements Runnable {
 			}
 
 		}
+		
+		public void processCommand(String command) {
+			String[] com = command.split(" ");
+			String message = command.substring(3, command.length()-1);
+			switch(com[0]) {
+				case "u":
+					// set username for client
+					String username = com[1];
+					// addUser(username, client)
+				case "h":
+					// print out help to user
+				case "Q":
+					// close this socket 
+					// kickUser(username)
+				case "b":
+					// broadcast the message
+					// broadcast(message)
+				case "s":
+					// send single message to user
+					String username = com[1];
+					// singleMessage(username, message)
+				case "c":
+					// send client list to user
+					// getClientList()
+				default:
+					// inform user that their command doesn't work
+			}
+		}
 
 		public void broadcast(String message) {
 
 		}
 
-		public void singleMessage(String message) {
+		public void singleMessage(String username, String message) {
 
 		}
 
