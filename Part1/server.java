@@ -64,12 +64,13 @@ class ClientHandler implements Runnable {
 		}
 		
 		public void processCommand(String command) {
+            String username;
 			String[] com = command.split(" ");
 			String message = command.substring(3, command.length()-1);
 			switch(com[0]) {
 				case "u":
 					// set username for client
-					String username = com[1];
+					username = com[1];
 					// addUser(username, client)
 				case "h":
 					// print out help to user
@@ -81,7 +82,7 @@ class ClientHandler implements Runnable {
 					// broadcast(message)
 				case "s":
 					// send single message to user
-					String username = com[1];
+					username = com[1];
 					// singleMessage(username, message)
 				case "c":
 					// send client list to user

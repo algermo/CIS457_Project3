@@ -21,7 +21,7 @@ class client {
 			+ "c prints the list of users connected \n" 
 			+ "h lists this set of commands again \n";
 			
-	public String username;
+	public static String username;
 
 	public static void main(String args[]) throws Exception {
 		
@@ -34,9 +34,9 @@ class client {
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		
-		System.out.println("Enter a username: ")
+        System.out.println("Enter a username: ");
 		username = inFromUser.readLine();
-		outToServer.writeBytes("u " + username "\n");
+		outToServer.writeBytes("u " + username + "\n");
 		
         while(true){
 			
