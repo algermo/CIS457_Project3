@@ -9,6 +9,7 @@
 
 import java.io.*;
 import java.net.*;
+import java.awt.*;
 
 class client {
 
@@ -43,4 +44,22 @@ class client {
 		
 	}
 
+}
+
+public class ClientGUI extends JFrame {
+	
+	private JButton sendBroadcast;
+	private JButton sendMessage;
+	private JButton clientList;
+	
+	private class ButtonListener implements ActionListener {
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+	}
+ 
 }
