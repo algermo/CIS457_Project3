@@ -29,7 +29,8 @@ class server {
 
 class ClientHandler implements Runnable {
 
-		ArrayList<Socket> clients = new ArrayList<Socket>();
+		public ArrayList<Socket> clients = new ArrayList<Socket>();
+		public HashMap <String, Socket> clientList = new HashMap<String, Socket>();
 
 		Socket clientSocket;
 		ClientHandler(Socket connection) {
@@ -46,9 +47,28 @@ class ClientHandler implements Runnable {
 				BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 while(true){
 					String message = inFromClient.readLine();
-					if(message.equals("client list")) {
+					// check what the message was
+					// we can change the keywords based on what we want
+					// formatting for keywords will be made in client
+					if(message.contains("username")) {
+						// set username up as key in hash map
+						// addUser(message);
+					}
+					else if(message.equals("client list")) {
 						String reply = getClientList();
 						// send reply to the client
+					}
+					else if(message.contains("broadcast")) {
+						// send message as a broadcast
+						// broadcast(message);
+					}
+					else if(message.contains("single")) {
+						// send message to single client
+						// singleMessage(message);
+					}
+					else {
+						// client sent invalid text
+						// let them know and they can retry
 					}
 					System.out.println("The client said " + message);
                 }
@@ -77,6 +97,10 @@ class ClientHandler implements Runnable {
 				clientList += "Client " + i + "\n";
 			}
 			return clientList;
+		}
+		
+		public void addUser(String username) {
+			
 		}
 
 		public void kickUser() {
