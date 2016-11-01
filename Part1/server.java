@@ -104,6 +104,9 @@ class ClientHandler implements Runnable {
 			String cList = "";
 			Set temp = clientList.keySet();
 			String[] cTemp = new String[clientList.size()];
+			for(int j = 0; j < temp.size(); j++) {
+				cTemp[j] = temp.toArray()[j].toString();
+			}
 			cTemp = temp.toArray();
 			for(int i = 0; i < clientList.size(); i++) {
 				cList += cTemp[i] + "\n";
