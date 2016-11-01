@@ -101,16 +101,18 @@ class ClientHandler implements Runnable {
 		}
 
 		public String getClientList() {
-			String clientList = "";
-			for(int i = 0; i < clients.size(); i++) {
-				System.out.println("Address of Client " + i + ": " + clients.get(i).getInetAddress().getAddress());
-				clientList += "Client " + i + "\n";
+			String cList = "";
+			Set temp = clientList.keySet();
+			String[] cTemp = new String[clientList.size()];
+			cTemp = temp.toArray();
+			for(int i = 0; i < clientList.size(); i++) {
+				cList += cTemp[i] + "\n";
 			}
-			return clientList;
+			return cList;
 		}
 		
 		public void addUser(String username) {
-			
+			clientList.put(username, clientSocket);
 		}
 
 		public void kickUser() {
