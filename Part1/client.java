@@ -14,11 +14,6 @@ import java.awt.*;
 class client {
 			
 	public static String username;
-	public static String cmd = "Q means QUIT\n"
-			+ "b broadcasts a message to all users connected \n"
-			+ "s USERNAME sends a message to a specified user connected \n" 
-			+ "c prints the list of users connected \n" 
-			+ "h lists this set of commands again \n";
 	
 	public static void main(String args[]) throws Exception {
 		
@@ -26,29 +21,76 @@ class client {
 		
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		
         System.out.println("Enter a username: ");
 		username = inFromUser.readLine();
 		outToServer.writeBytes("u " + username + "\n");
-		
-        while(true){
-			
+		while(true) {
+			Runnable out = new OutputHandler(clientSocket);
+			Runnable in = new InputHandler(clientSocket);
+			Thread outputThread = new Thread(out);
+			Thread inputThread = new Thread(in);
+			outputThread.start();
+			inputThread.start();
+		}
+	}
+}
+
+class OutputHandler implements Runnable {
+	
+	Socket clientSocket;
+	ClientHandler(Socket connection) {
+		clientSocket = connection;
+	}
+	
+	public void run() {
+	
+		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+	
+		while(true){
+				
 			System.out.println("Enter a message: ");
 			String message = inFromUser.readLine();
-			// outToServer.writeBytes(username + " " + message + '\n');
 			outToServer.writeBytes(message + '\n');
+				
+		}
+	}
+	
+	
+}
+
+class InputHandler implements Runnable {
+	
+	public static String cmd = "Q means QUIT\n"
+			+ "b broadcasts a message to all users connected \n"
+			+ "s USERNAME sends a message to a specified user connected \n" 
+			+ "c prints the list of users connected \n" 
+			+ "h lists this set of commands again \n";
+	
+	Socket clientSocket;
+	ClientHandler(Socket connection) {
+		clientSocket = connection;
+	}
+	
+	public void run() {
+	
+		BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+	
+		while(true){
+				
 			String recvMessage = inFromServer.readLine();
 			if(recvMessage.equals("help")) {
 				System.out.println(cmd);
 			} else {
 				System.out.println(recvMessage);
 			}
-			
-        }
+		}
 	}
-
+	
 }
+
+
 /*
 public class ClientGUI extends JFrame {
 	
