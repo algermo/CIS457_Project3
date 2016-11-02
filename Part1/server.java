@@ -35,13 +35,6 @@ class ClientHandler implements Runnable {
 	
     public ConcurrentHashMap <String, Socket> clientList = new ConcurrentHashMap<String, Socket>();
     public String user;
-	
-	public String cmd = "Q means QUIT\n"
-			+ "u sets your username \n"
-			+ "b broadcasts a message to all users connected \n"
-			+ "s USERNAME sends a message to a specified user connected \n" 
-			+ "c prints the list of users connected \n" 
-			+ "h lists this set of commands again \n";
 			
 
 	Socket clientSocket;
@@ -94,7 +87,8 @@ class ClientHandler implements Runnable {
 					break;
 				case "h":
 					// print out help to user
-					singleMessage(user, cmd);
+					String help = "help";
+					singleMessage(user, help);
 					break;
 				case "Q":
 					// close this socket 
@@ -102,13 +96,13 @@ class ClientHandler implements Runnable {
 					break;
 				case "b":
 					// broadcast the message
-					message = command.substring(2, command.length());
+					message = user + ": " + command.substring(2, command.length());
 					broadcast(message);
 					break;
 				case "s":
 					// send single message to user
 					username = com[1];
-					message = command.substring(3 + username.length(), command.length());
+					message = user + ": " + command.substring(3 + username.length(), command.length());
 					singleMessage(username, message);
 					break;
 				case "c":
@@ -131,7 +125,7 @@ class ClientHandler implements Runnable {
 		}
 	}
 
-	public void broadcast(String message) throws Exception {
+	public void broadcast(String message) {
         try{
             
         for(Map.Entry<String, Socket> entry : clientList.entrySet()){
@@ -151,10 +145,12 @@ class ClientHandler implements Runnable {
 
 	public void singleMessage(String username, String message) {
 		
+		// find the socket of the requested user
+		Socket userSocket;
+		userSocket = clientList.get(username);
+		
 		try {
-			// find the socket of the requested user
-			Socket userSocket;
-			userSocket = clientList.get(username);
+			
 			DataOutputStream outToClient = new DataOutputStream(userSocket.getOutputStream());
 			
 			// send message out on this socket
@@ -197,14 +193,24 @@ class ClientHandler implements Runnable {
 		user = username;
 	}
 
-	public void kickUser(String username) throws Exception {
+	public void kickUser(String username) {
 		
 		// find the socket of the requested user
 		Socket userSocket;
 		userSocket = clientList.get(username);
 		
-		// close the socket
-		userSocket.close();
+		try {
+			// inform user that they're being logged out
+			String logoutMsg = "You have been logged out. \n";
+			singleMessage(username, logoutMsg);
+			// close the socket
+			userSocket.close();
+			
+		} catch (Exception e) {
+			
+			System.out.println("Something went wrong in kickUser. \n");
+			
+		}
 		
 		// remove the user from the client list
 		clientList.remove(username);

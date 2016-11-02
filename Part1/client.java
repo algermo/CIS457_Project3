@@ -14,7 +14,12 @@ import java.awt.*;
 class client {
 			
 	public static String username;
-
+	public static String cmd = "Q means QUIT\n"
+			+ "b broadcasts a message to all users connected \n"
+			+ "s USERNAME sends a message to a specified user connected \n" 
+			+ "c prints the list of users connected \n" 
+			+ "h lists this set of commands again \n";
+	
 	public static void main(String args[]) throws Exception {
 		
 		Socket clientSocket = new Socket("127.0.0.1", 9876);
@@ -34,7 +39,11 @@ class client {
 			// outToServer.writeBytes(username + " " + message + '\n');
 			outToServer.writeBytes(message + '\n');
 			String recvMessage = inFromServer.readLine();
-			System.out.println(recvMessage);
+			if(recvMessage.equals("help")) {
+				System.out.println(cmd);
+			} else {
+				System.out.println(recvMessage);
+			}
 			
         }
 	}
