@@ -51,7 +51,7 @@ class ClientHandler implements Runnable {
 			DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			
-			while(true){
+			while(clientSocket.isConnected()){
 				
 				// receive message from user
 				String message = inFromClient.readLine();
