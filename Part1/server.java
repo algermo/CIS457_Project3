@@ -33,7 +33,10 @@ class server {
 
 class ClientHandler implements Runnable {
 	
+	/** Hashmap containing the connected clients (keys = client usernames) **/
     public ConcurrentHashMap <String, Socket> clientList = new ConcurrentHashMap<String, Socket>();
+	
+	/** The username of the client connected on this thread **/
     public String user;
 			
 
@@ -44,6 +47,9 @@ class ClientHandler implements Runnable {
 	}
 		
 
+	/*******************************************************************
+	 * Runs the client thread
+	 ******************************************************************/
 	public void run() {
 		
 		try {
@@ -56,19 +62,30 @@ class ClientHandler implements Runnable {
 				// receive message from user
 				String message = inFromClient.readLine();
 				
-				// process the message the user sent
-				processCommand(message);
+				if(message.equals("") || message.equals(" ")) {
+					// inform user of empty message
+					String emptyCmd = "Please enter a command. \n";
+					singleMessage(user, emptyCmd);
+				} else {
+					// process the message the user sent
+					processCommand(message);
+				}
 				System.out.println(message);
-				outToClient.writeBytes("Processed.\n");
+
 			}
 			
 		} catch(Exception e) {
 			
-			System.out.println("Something went wrong in run. \n");
+			System.out.println("Something went wrong in run.\n");
 		}
 
 	}
-		
+	
+	/*******************************************************************
+	 * Processes the command given by the client
+	 * 
+	 * @param command the client's command and any associated messages
+	 ******************************************************************/
 	public void processCommand(String command) {
 		
 		String username;
@@ -82,8 +99,8 @@ class ClientHandler implements Runnable {
 				case "u":
 					// set username for client
 					username = com[1];
-					System.out.println("Adding user: " + username + "\n");
 					addUser(username);
+					System.out.println("Added user " + username + "\n");
 					break;
 				case "h":
 					// print out help to user
@@ -125,24 +142,36 @@ class ClientHandler implements Runnable {
 		}
 	}
 
+	/*******************************************************************
+	 * Broadcasts the client's message to all connected clients
+	 * 
+	 * @param message the message being broadcasted
+	 ******************************************************************/
 	public void broadcast(String message) {
         try{
             
-        for(Map.Entry<String, Socket> entry : clientList.entrySet()){
-            String tempUser = entry.getKey();
-            if(tempUser != user){
-                singleMessage(tempUser, message);
-            }
-            else{
-                continue;
-            }
-        }
+			for(Map.Entry<String, Socket> entry : clientList.entrySet()){
+				String tempUser = entry.getKey();
+				if(tempUser != user){
+					singleMessage(tempUser, message);
+				}
+				else{
+					continue;
+				}
+			}
         }catch(Exception e){
             System.out.println("Something went wrong with broadcast. \n");
         }
 		
 	}
 
+	/*******************************************************************
+	 * Sends a single message from the client to another specified and
+	 * connected client
+	 * 
+	 * @param username the user to receive the message
+	 * @param message the single message being sent
+	 ******************************************************************/
 	public void singleMessage(String username, String message) {
 		
 		// find the socket of the requested user
@@ -163,6 +192,11 @@ class ClientHandler implements Runnable {
 		}
 	}
 
+	/*******************************************************************
+	 * Gets the list of connected clients
+	 * 
+	 * @return String the list of connected clients
+	 ******************************************************************/
 	public String getClientList() {
 		
 		String cList = "Currently connected users: \n";
@@ -183,7 +217,12 @@ class ClientHandler implements Runnable {
 		}
 		return cList;
 	}
-		
+	
+	/*******************************************************************
+	 * Adds a user to the HashMap of connected clients
+	 * 
+	 * @param username the username of the client to be added
+	 ******************************************************************/
 	public void addUser(String username) {
 		
 		// add the username and socket to the HashMap
@@ -193,6 +232,11 @@ class ClientHandler implements Runnable {
 		user = username;
 	}
 
+	/*******************************************************************
+	 * Disconnects the client socket with the associated username
+	 * 
+	 * @param username the username of the client to be disconnected
+	 ******************************************************************/
 	public void kickUser(String username) {
 		
 		// find the socket of the requested user

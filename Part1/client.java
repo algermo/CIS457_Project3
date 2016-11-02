@@ -13,6 +13,7 @@ import java.awt.*;
 
 class client {
 			
+	/** Username for the client **/
 	public static String username;
 	
 	public static void main(String args[]) throws Exception {
@@ -22,10 +23,12 @@ class client {
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 		
+		// request a username from the client and send it to the server
         System.out.println("Enter a username: ");
 		username = inFromUser.readLine();
 		outToServer.writeBytes("u " + username + "\n");
 
+		// run threads for output to server and input from server
 		Runnable out = new OutputHandler(clientSocket);
 		Runnable in = new InputHandler(clientSocket);
 		Thread outputThread = new Thread(out);
@@ -43,6 +46,10 @@ class OutputHandler implements Runnable {
 		clientSocket = connection;
 	}
 	
+	/*******************************************************************
+	 * Runs the thread to get user input and output messages 
+	 * to the server
+	 ******************************************************************/
 	public void run() {
 		try {
 			BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
@@ -65,6 +72,7 @@ class OutputHandler implements Runnable {
 
 class InputHandler implements Runnable {
 	
+	/** List of commands available to user **/
 	public static String cmd = "Q means QUIT\n"
 			+ "b broadcasts a message to all users connected \n"
 			+ "s USERNAME sends a message to a specified user connected \n" 
@@ -76,6 +84,9 @@ class InputHandler implements Runnable {
 		clientSocket = connection;
 	}
 	
+	/*******************************************************************
+	 * Runs the thread to get input from the server
+	 ******************************************************************/
 	public void run() {
 	
 		try {
