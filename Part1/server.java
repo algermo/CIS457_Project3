@@ -70,13 +70,14 @@ class ClientHandler implements Runnable {
 					// process the message the user sent
 					processCommand(message);
 				}
-				System.out.println(message);
 
 			}
 			
 		} catch(Exception e) {
 			
-			System.out.println("Something went wrong in run.\n");
+			// System.out.println("Something went wrong in run.\n");
+			// System.out.println("Error: " + e + "\n");
+			
 		}
 
 	}
@@ -109,7 +110,14 @@ class ClientHandler implements Runnable {
 					break;
 				case "Q":
 					// close this socket 
+					singleMessage(user, "Q");
 					kickUser(user);
+					break;
+				case "k":
+					// kick out the requested user
+					username = com[1];
+					singleMessage(username, "Q");
+					kickUser(username);
 					break;
 				case "b":
 					// broadcast the message
@@ -138,6 +146,7 @@ class ClientHandler implements Runnable {
 		} catch (Exception e) {
 			
 			System.out.println("Something went wrong in processCommand. \n");
+			System.out.println("Error: " + e + "\n");
 			
 		}
 	}
@@ -160,7 +169,10 @@ class ClientHandler implements Runnable {
 				}
 			}
         }catch(Exception e){
+			
             System.out.println("Something went wrong with broadcast. \n");
+			System.out.println("Error: " + e + "\n");
+			
         }
 		
 	}
@@ -188,6 +200,7 @@ class ClientHandler implements Runnable {
 		} catch (Exception e) {
 			
 			System.out.println("Something went wrong in singleMessage. \n");
+			System.out.println("Error: " + e + "\n");
 			
 		}
 	}
@@ -244,15 +257,14 @@ class ClientHandler implements Runnable {
 		userSocket = clientList.get(username);
 		
 		try {
-			// inform user that they're being logged out
-			String logoutMsg = "You have been logged out. \n";
-			singleMessage(username, logoutMsg);
+			
 			// close the socket
 			userSocket.close();
 			
 		} catch (Exception e) {
 			
 			System.out.println("Something went wrong in kickUser. \n");
+			System.out.println("Error: " + e + "\n");
 			
 		}
 		

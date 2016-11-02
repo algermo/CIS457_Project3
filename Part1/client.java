@@ -57,13 +57,15 @@ class OutputHandler implements Runnable {
 		
 			while(true){
 					
-				System.out.println("Enter a message: ");
 				String message = inFromUser.readLine();
 				outToServer.writeBytes(message + '\n');
-					
+	
 			}
 		} catch (Exception e) {
+			
 			System.out.println("Something when wrong in output run. \n");
+			System.out.println("Error: " + e + "\n");
+			
 		}
 	}
 	
@@ -73,10 +75,11 @@ class OutputHandler implements Runnable {
 class InputHandler implements Runnable {
 	
 	/** List of commands available to user **/
-	public static String cmd = "Q means QUIT\n"
+	public static String cmd = "Q logs you out\n"
 			+ "b broadcasts a message to all users connected \n"
 			+ "s USERNAME sends a message to a specified user connected \n" 
 			+ "c prints the list of users connected \n" 
+			+ "k USERNAME kicks out the requested user \n"
 			+ "h lists this set of commands again \n";
 	
 	Socket clientSocket;
@@ -99,11 +102,18 @@ class InputHandler implements Runnable {
 				if(recvMessage.equals("help")) {
 					System.out.println(cmd);
 				} else {
+					if (recvMessage.equals("Q")) {
+						System.out.println("You have been signed out. \n");
+						System.exit(0);
+					}
 					System.out.println(recvMessage);
 				}
 			}
 		} catch (Exception e) {
+			
 			System.out.println("Something when wrong in input run. \n");
+			System.out.println("Error: " + e + "\n");
+			
 		}
 	}
 	
