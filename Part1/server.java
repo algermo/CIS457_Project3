@@ -102,13 +102,13 @@ class ClientHandler implements Runnable {
 					break;
 				case "b":
 					// broadcast the message
-					message = command.substring(3, command.length()-1);
+					message = command.substring(2, command.length());
 					broadcast(message);
 					break;
 				case "s":
 					// send single message to user
 					username = com[1];
-					message = command.substring(3 + username.length(), command.length()-1);
+					message = command.substring(3 + username.length(), command.length());
 					singleMessage(username, message);
 					break;
 				case "c":
@@ -132,6 +132,20 @@ class ClientHandler implements Runnable {
 	}
 
 	public void broadcast(String message) throws Exception {
+        try{
+            
+        for(Map.Entry<String, Socket> entry : clientList.entrySet()){
+            String tempUser = entry.getKey();
+            if(tempUser != user){
+                singleMessage(tempUser, message);
+            }
+            else{
+                continue;
+            }
+        }
+        }catch(Exception e){
+            System.out.println("Something went wrong with broadcast. \n");
+        }
 		
 	}
 
@@ -144,7 +158,7 @@ class ClientHandler implements Runnable {
 			DataOutputStream outToClient = new DataOutputStream(userSocket.getOutputStream());
 			
 			// send message out on this socket
-			outToClient.writeBytes(message);
+			outToClient.writeBytes(message + "\n");
 			
 		} catch (Exception e) {
 			
