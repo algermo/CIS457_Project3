@@ -1,16 +1,25 @@
 /*
  * Molly Alger & Chris Fracssi
  * CIS457 F16
- * Project 3 Part 1 - TCP Chat Client
- * November 8, 2016
+ * Project 3 Part 2 - TCP Chat Client
+ * November 14, 2016
  *
  */
 
 
 import java.io.*;
 import java.net.*;
+import java.awt.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
+import java.security.*;
+import java.security.spec.*;
+import javax.xml.bind.DatatypeConverter;
 
 class client {
+			
+	int serverPublicKey;
+	int symmetricKey;
 			
 	/** Username for the client **/
 	public static String username;
@@ -56,6 +65,7 @@ class OutputHandler implements Runnable {
 		
 			while(true){
 					
+				// TODO: encrypt message
 				String message = inFromUser.readLine();
 				outToServer.writeBytes(message + '\n');
 	
@@ -96,7 +106,8 @@ class InputHandler implements Runnable {
 			BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		
 			while(true){
-					
+				
+				// TODO: decrypt message
 				String recvMessage = inFromServer.readLine();
 				if(recvMessage.equals("help")) {
 					System.out.println(cmd);
