@@ -46,8 +46,47 @@ class client {
 		
 	}
 	//TODO: encrypt method for user message
+    public byte[] encrypt(byte[] plaintext, SecretKey secKey, IvParameterSpec iv){
+        try{
+            Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            c.init(Cipher.ENCRYPT_MODE,secKey,iv);
+            byte[] ciphertext = c.doFinal(plaintext);
+            return ciphertext;
+        }catch(Exception e){
+            System.out.println("AES Encrypt Exception");
+            System.exit(1);
+            return null;
+        }
+    }
+
 	//TODO: RSA Encrypt key
+    public byte[] RSAEncrypt(byte[] plaintext){
+        try{
+            Cipher c = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
+            c.init(Cipher.ENCRYPT_MODE,pubKey);
+            byte[] ciphertext=c.doFinal(plaintext);
+            return ciphertext;
+        }catch(Exception e){
+            System.out.println("RSA Encrypt Exception");
+            System.exit(1);
+            return null;
+        }
+    }
+
 	//TODO: Generate key method
+    public SecretKey generateAESKey(){
+        try{
+            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+            keyGen.init(128);
+            SecretKey secKey = keyGen.generateKey();
+            return secKey;
+        }catch(Exception e){
+            System.out.println("Key Generation Exception");
+            System.exit(1);
+            return null;
+        }
+    }
+
 }
 
 class OutputHandler implements Runnable {
@@ -82,7 +121,18 @@ class OutputHandler implements Runnable {
 	}
 
 	//TODO: encrypt method
-	
+    public byte[] encrypt(byte[] plaintext, SecretKey secKey, IvParameterSpec iv){
+        try{
+            Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            c.init(Cipher.ENCRYPT_MODE,secKey,iv);
+            byte[] ciphertext = c.doFinal(plaintext);
+            return ciphertext;
+        }catch(Exception e){
+            System.out.println("AES Encrypt Exception");
+            System.exit(1);
+            return null;
+        }
+    }
 	
 }
 
@@ -132,5 +182,18 @@ class InputHandler implements Runnable {
 		}
 	}
 	//TODO: Decrypt method
+    public byte[] decrypt(byte[] ciphertext, SecretKey secKey, IvParameterSpec iv){
+        try{
+            Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            c.init(Cipher.DECRYPT_MODE,secKey,iv);
+            byte[] plaintext = c.doFinal(ciphertext);
+            return plaintext;
+        }catch(Exception e){
+            System.out.println("AES Decrypt Exception");
+            System.exit(1);
+            return null;
+        }
+    }
+
 	
 }

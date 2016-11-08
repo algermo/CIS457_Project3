@@ -43,6 +43,38 @@ class server {
 	}
 	//TODO:
 	//Add methods; Set Public Key and Private Key
+    public void setPublicKey(String filename){
+        try{
+            File f = new File(filename);
+            FileInputStream fs = new FileInputStream(f);
+            byte[] keybytes = new byte[(int)f.length()];
+            fs.read(keybytes);
+            fs.close();
+            X509EncodedKeySpec keyspec = new X509EncodedKeySpec(keybytes);
+            KeyFactory rsafactory = KeyFactory.getInstance("RSA");
+            pubKey = rsafactory.generatePublic(keyspec);
+        }catch(Exception e){
+            System.out.println("Public Key Exception");
+            System.exit(1);
+        }
+    }
+    
+    public void setPrivateKey(String filename){
+        try{
+            File f = new File(filename);
+            FileInputStream fs = new FileInputStream(f);
+            byte[] keybytes = new byte[(int)f.length()];
+            fs.read(keybytes);
+            fs.close();
+            PKCS8EncodedKeySpec keyspec = new PKCS8EncodedKeySpec(keybytes);
+            KeyFactory rsafactory = KeyFactory.getInstance("RSA");
+            privKey = rsafactory.generatePrivate(keyspec);
+        }catch(Exception e){
+            System.out.println("Private Key Exception");
+            e.printStackTrace(System.out);
+            System.exit(1);
+        }
+    }
 }
 
 class ClientHandler implements Runnable {
@@ -290,7 +322,43 @@ class ClientHandler implements Runnable {
 		System.out.println(username + " signed out. \n");
 	}
 	//TODO: Encrypt and Decrypt methods
+    public byte[] encrypt(byte[] plaintext, SecretKey secKey, IvParameterSpec iv){
+        try{
+            Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            c.init(Cipher.ENCRYPT_MODE,secKey,iv);
+            byte[] ciphertext = c.doFinal(plaintext);
+            return ciphertext;
+        }catch(Exception e){
+            System.out.println("AES Encrypt Exception");
+            System.exit(1);
+            return null;
+        }
+    }
+    
+    public byte[] decrypt(byte[] ciphertext, SecretKey secKey, IvParameterSpec iv){
+        try{
+            Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            c.init(Cipher.DECRYPT_MODE,secKey,iv);
+            byte[] plaintext = c.doFinal(ciphertext);
+            return plaintext;
+        }catch(Exception e){
+            System.out.println("AES Decrypt Exception");
+            System.exit(1);
+            return null;
+        }
+    }
+
 	//TODO: RSA Decrypt key
-
-
+    public byte[] RSADecrypt(byte[] ciphertext){
+        try{
+            Cipher c = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
+            c.init(Cipher.DECRYPT_MODE,privKey);
+            byte[] plaintext=c.doFinal(ciphertext);
+            return plaintext;
+        }catch(Exception e){
+            System.out.println("RSA Decrypt Exception");
+            System.exit(1);
+            return null;
+        }
+    }
 }
