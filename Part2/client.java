@@ -30,7 +30,7 @@ class client {
 		
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-		
+		//TODO: encrypt user info
 		// request a username from the client and send it to the server
         System.out.println("Enter a username: ");
 		username = inFromUser.readLine();
@@ -45,6 +45,9 @@ class client {
 		inputThread.start();
 		
 	}
+	//TODO: encrypt method for user message
+	//TODO: RSA Encrypt key
+	//TODO: Generate key method
 }
 
 class OutputHandler implements Runnable {
@@ -77,6 +80,8 @@ class OutputHandler implements Runnable {
 			
 		}
 	}
+
+	//TODO: encrypt method
 	
 	
 }
@@ -126,5 +131,6 @@ class InputHandler implements Runnable {
 			
 		}
 	}
+	//TODO: Decrypt method
 	
 }

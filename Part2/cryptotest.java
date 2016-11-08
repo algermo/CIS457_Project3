@@ -9,28 +9,29 @@ class cryptotest{
     private PrivateKey privKey;
     private PublicKey pubKey;
     public static void main(String args[]){
-	cryptotest c = new cryptotest();
-	c.setPrivateKey("RSApriv.der");
-	c.setPublicKey("RSApub.der");
-	SecretKey s = c.generateAESKey();
-	byte encryptedsecret[] = c.RSAEncrypt(s.getEncoded());
-	SecureRandom r = new SecureRandom();
-	byte ivbytes[] = new byte[16];
-	r.nextBytes(ivbytes);
-	IvParameterSpec iv = new IvParameterSpec(ivbytes);
-	String plaintext = "This is a test string to encrypt";
-	byte ciphertext[] = c.encrypt(plaintext.getBytes(),s,iv);
-	System.out.printf("CipherText: %s%n",DatatypeConverter.printHexBinary(ciphertext));
-	byte decryptedsecret[] = c.RSADecrypt(encryptedsecret);
-	SecretKey ds = new SecretKeySpec(decryptedsecret,"AES");
-	byte decryptedplaintext[] = c.decrypt(ciphertext,ds,iv);
-	String dpt = new String(decryptedplaintext);
-	System.out.printf("PlainText: %s%n",dpt);
+		cryptotest c = new cryptotest();
+		c.setPrivateKey("RSApriv.der");
+		c.setPublicKey("RSApub.der");
+		SecretKey s = c.generateAESKey();
+		byte encryptedsecret[] = c.RSAEncrypt(s.getEncoded());
+		SecureRandom r = new SecureRandom();
+		byte ivbytes[] = new byte[16];
+		r.nextBytes(ivbytes);
+		IvParameterSpec iv = new IvParameterSpec(ivbytes);
+		String plaintext = "This is a test string to encrypt";
+		byte ciphertext[] = c.encrypt(plaintext.getBytes(),s,iv);
+		System.out.printf("CipherText: %s%n",DatatypeConverter.printHexBinary(ciphertext));
+		byte decryptedsecret[] = c.RSADecrypt(encryptedsecret);
+		SecretKey ds = new SecretKeySpec(decryptedsecret,"AES");
+		byte decryptedplaintext[] = c.decrypt(ciphertext,ds,iv);
+		String dpt = new String(decryptedplaintext);
+		System.out.printf("PlainText: %s%n",dpt);
     }
     public cryptotest(){
-	privKey=null;
-	pubKey=null;
+		privKey=null;
+		pubKey=null;
     }
+	//used in both client and server
     public byte[] encrypt(byte[] plaintext, SecretKey secKey, IvParameterSpec iv){
 	try{
 	    Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -43,6 +44,7 @@ class cryptotest{
 	    return null;
 	}
     }
+	//used in both
     public byte[] decrypt(byte[] ciphertext, SecretKey secKey, IvParameterSpec iv){
 	try{
 	    Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -55,6 +57,7 @@ class cryptotest{
 	    return null;
 	}
     }
+	//Server
     public byte[] RSADecrypt(byte[] ciphertext){
 	try{
 	    Cipher c = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
@@ -67,6 +70,7 @@ class cryptotest{
 	    return null;
 	}
     }
+	//Client
     public byte[] RSAEncrypt(byte[] plaintext){
 	try{
 	    Cipher c = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
@@ -79,6 +83,8 @@ class cryptotest{
 	    return null;
 	}
     }
+	//secret key is sent using public key once, then secret key always used.
+	//Client
     public SecretKey generateAESKey(){
 	try{
 	    KeyGenerator keyGen = KeyGenerator.getInstance("AES");
@@ -91,6 +97,7 @@ class cryptotest{
 	    return null;
 	}
     }
+	//Server
     public void setPrivateKey(String filename){
 	try{
 	    File f = new File(filename);
@@ -107,6 +114,7 @@ class cryptotest{
 	    System.exit(1);
 	}
     }
+	//Server
     public void setPublicKey(String filename){
 	try{
 	    File f = new File(filename);

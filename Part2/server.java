@@ -25,6 +25,10 @@ class server {
 
 	public static void main(String args[]) throws Exception {
 
+	//TODO:
+	//set Private key
+	//set Public key
+
 		ServerSocket listenSocket = new ServerSocket(9876);
 		
 		while(true) {
@@ -37,6 +41,8 @@ class server {
 		}
 
 	}
+	//TODO:
+	//Add methods; Set Public Key and Private Key
 }
 
 class ClientHandler implements Runnable {
@@ -283,4 +289,8 @@ class ClientHandler implements Runnable {
 		clientList.remove(username);
 		System.out.println(username + " signed out. \n");
 	}
+	//TODO: Encrypt and Decrypt methods
+	//TODO: RSA Decrypt key
+
+
 }
