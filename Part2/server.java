@@ -17,32 +17,38 @@ import java.security.spec.*;
 import javax.xml.bind.DatatypeConverter;
 
 class server {
-    
-	int serverPublicKey;
-	int symmetricKey;
+    private PrivateKey privKey;
+    private PublicKey pubKey;
+
 	
     public static ConcurrentHashMap <String, Socket> clientList = new ConcurrentHashMap<String, Socket>();
 
 	public static void main(String args[]) throws Exception {
 
-	//TODO:
-	//set Private key
-	//set Public key
-
+        //set keys
+        server s = new server();
+        s.setPrivateKey("RSApriv.der");
+        s.setPublicKey("RSApub.der");
+        
 		ServerSocket listenSocket = new ServerSocket(9876);
 		
 		while(true) {
 
 			// list on socket and run thread for multiple connections
 			Socket clientSocket = listenSocket.accept();	
-			Runnable r = new ClientHandler(clientSocket, clientList);
+			Runnable r = new ClientHandler(clientSocket, clientList, pubKey);
 			Thread t = new Thread(r);
 			t.start();
 		}
 
 	}
-	//TODO:
-	//Add methods; Set Public Key and Private Key
+    //constructor method
+    public server(){
+        privKey = null;
+        pubKey = null;
+        
+    }
+    //Set public key
     public void setPublicKey(String filename){
         try{
             File f = new File(filename);
@@ -59,6 +65,7 @@ class server {
         }
     }
     
+    //Set private key
     public void setPrivateKey(String filename){
         try{
             File f = new File(filename);
@@ -84,12 +91,17 @@ class ClientHandler implements Runnable {
 	
 	/** The username of the client connected on this thread **/
     public String user;
-			
+    
+    /** Public key to send to client **/
+    private PublicKey pubKey;
+
+    boolean firstSend = false;
 
 	Socket clientSocket;
-	ClientHandler(Socket connection, ConcurrentHashMap <String, Socket> clients) {
+	ClientHandler(Socket connection, ConcurrentHashMap <String, Socket> clients, PublicKey pKey) {
 		clientSocket = connection;
         clientList = clients;
+        pubKey = pKey;
 	}
 		
 
@@ -105,6 +117,22 @@ class ClientHandler implements Runnable {
 			
 			while(clientSocket.isConnected()){
 				
+                //first send is public key, then act normal
+                //is this even necessary?
+                //Should this happen earlier in the code?
+                if(firstSend == false){
+                    //TODO: Send public key to client
+                    //Can't use singleMessage since it requires a string
+                    Socket cSock = clientList.get(user);
+                    //Have to be able to send public key as an object
+                    ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
+                    oos.writeObject(pubKey);
+                }
+                
+                //TODO: receive encrypted key from client
+                
+                //TODO: decrypt key using private key
+                
 				// TODO: decrpyt the message received
 				
 				// receive message from user

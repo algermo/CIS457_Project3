@@ -25,19 +25,23 @@ class client {
 	public static String username;
 	
 	public static void main(String args[]) throws Exception {
-		
+        client c = new client();
+        
+        //generate secrect key
+        SecretKey sKey = c.generateAESKey();
+        
 		Socket clientSocket = new Socket("127.0.0.1", 9876);
 		
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 		//TODO: encrypt user info
-		// request a username from the client and send it to the server
+		//request a username from the client and send it to the server
         System.out.println("Enter a username: ");
 		username = inFromUser.readLine();
 		outToServer.writeBytes("u " + username + "\n");
 
 		// run threads for output to server and input from server
-		Runnable out = new OutputHandler(clientSocket);
+		Runnable out = new OutputHandler(clientSocket, sKey);
 		Runnable in = new InputHandler(clientSocket);
 		Thread outputThread = new Thread(out);
 		Thread inputThread = new Thread(in);
@@ -45,6 +49,12 @@ class client {
 		inputThread.start();
 		
 	}
+    
+    //constructor
+    public client(){
+        
+    }
+    
 	//TODO: encrypt method for user message
     public byte[] encrypt(byte[] plaintext, SecretKey secKey, IvParameterSpec iv){
         try{
@@ -91,9 +101,14 @@ class client {
 
 class OutputHandler implements Runnable {
 	
+    //Secret key to send to server
+    private SecretKey OutSecretKey;
+    
 	Socket clientSocket;
-	OutputHandler(Socket connection) {
+	OutputHandler(Socket connection, SecretKey secret) {
 		clientSocket = connection;
+        OutSecretKey = secret;
+        
 	}
 	
 	/*******************************************************************
@@ -104,7 +119,9 @@ class OutputHandler implements Runnable {
 		try {
 			BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 			DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
-		
+            
+            
+            
 			while(true){
 					
 				// TODO: encrypt message
@@ -146,6 +163,10 @@ class InputHandler implements Runnable {
 			+ "k USERNAME kicks out the requested user \n"
 			+ "h lists this set of commands again \n";
 	
+    /** Public key received from server **/
+    private PublicKey pubKey;
+    boolean firstMessage = false;
+    
 	Socket clientSocket;
 	InputHandler(Socket connection) {
 		clientSocket = connection;
@@ -161,6 +182,13 @@ class InputHandler implements Runnable {
 			BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		
 			while(true){
+                
+                //First message received is public key, then go on like normal
+                if(firstMessage == false){
+                    //get public key
+                    //this might require an ObjectInputReader
+                    firstMessage == true;
+                }
 				
 				// TODO: decrypt message
 				String recvMessage = inFromServer.readLine();
