@@ -17,8 +17,8 @@ import java.security.spec.*;
 import javax.xml.bind.DatatypeConverter;
 
 class server {
-    private PrivateKey privKey;
-    private PublicKey pubKey;
+    private static PrivateKey privKey;
+    private static PublicKey pubKey;
 
 	
     public static ConcurrentHashMap <String, Socket> clientList = new ConcurrentHashMap<String, Socket>();
@@ -36,7 +36,7 @@ class server {
 
 			// list on socket and run thread for multiple connections
 			Socket clientSocket = listenSocket.accept();	
-			Runnable r = new ClientHandler(clientSocket, clientList, pubKey);
+			Runnable r = new ClientHandler(clientSocket, clientList, pubKey, privKey);
 			Thread t = new Thread(r);
 			t.start();
 		}
@@ -94,14 +94,20 @@ class ClientHandler implements Runnable {
     
     /** Public key to send to client **/
     private PublicKey pubKey;
+    
+    /**Private key to use for decryption**/
+    private PrivateKey privKey;
+    
+    SecretKey sKey;
 
-    boolean firstSend = false;
+    boolean firstReceive = true;
 
 	Socket clientSocket;
-	ClientHandler(Socket connection, ConcurrentHashMap <String, Socket> clients, PublicKey pKey) {
+	ClientHandler(Socket connection, ConcurrentHashMap <String, Socket> clients, PublicKey pbKey, PrivateKey pvKey) {
 		clientSocket = connection;
         clientList = clients;
-        pubKey = pKey;
+        pubKey = pbKey;
+        privKey = pvKey;
 	}
 		
 
@@ -116,22 +122,20 @@ class ClientHandler implements Runnable {
 			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			
 			while(clientSocket.isConnected()){
-				
-                //first send is public key, then act normal
-                //is this even necessary?
-                //Should this happen earlier in the code?
-                if(firstSend == false){
-                    //TODO: Send public key to client
-                    //Can't use singleMessage since it requires a string
-                    Socket cSock = clientList.get(user);
-                    //Have to be able to send public key as an object
-                    ObjectOutputStream oos = new ObjectOutputStream(clientSocket.getOutputStream());
-                    oos.writeObject(pubKey);
+            
+                if(firstReceive == true){
+                    InputStream is = clientSocket.getInputStream();
+                    //receive encrypted key from client
+                    //TODO: See if the byte array needs a specific size
+                    byte[] sKeyEncrypted = new byte[100];
+                    int count = is.read(sKeyEncrypted);
+                    
+                    //decrypt key using private key
+                    byte[] sKeyDecrypted = RSADecrypt(sKeyEncrypted);
+                    sKey = new SecretKeySpec(sKeyDecrypted, "AES");
+                    firstReceive = false;
                 }
                 
-                //TODO: receive encrypted key from client
-                
-                //TODO: decrypt key using private key
                 
 				// TODO: decrpyt the message received
 				

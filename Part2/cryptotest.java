@@ -114,7 +114,7 @@ class cryptotest{
             System.exit(1);
         }
     }
-	//Server
+	//Both
     public void setPublicKey(String filename){
         try{
             File f = new File(filename);

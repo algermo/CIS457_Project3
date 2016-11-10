@@ -17,18 +17,24 @@ import java.security.spec.*;
 import javax.xml.bind.DatatypeConverter;
 
 class client {
-			
-	int serverPublicKey;
-	int symmetricKey;
-			
+    
 	/** Username for the client **/
 	public static String username;
+    
+    /** Public Key **/
+    private static PublicKey pubKey;
 	
 	public static void main(String args[]) throws Exception {
         client c = new client();
         
-        //generate secrect key
+        //generate public key
+        c.setPublicKey("RSApub.der");
+        
+        //generate secret key
         SecretKey sKey = c.generateAESKey();
+        
+        //Encrypt secret key
+        byte sKeyEncrypted[] = c.RSAEncrypt(sKey.getEncoded());
         
 		Socket clientSocket = new Socket("127.0.0.1", 9876);
 		
@@ -41,7 +47,7 @@ class client {
 		outToServer.writeBytes("u " + username + "\n");
 
 		// run threads for output to server and input from server
-		Runnable out = new OutputHandler(clientSocket, sKey);
+		Runnable out = new OutputHandler(clientSocket, pubKey, sKeyEncrypted);
 		Runnable in = new InputHandler(clientSocket);
 		Thread outputThread = new Thread(out);
 		Thread inputThread = new Thread(in);
@@ -52,7 +58,7 @@ class client {
     
     //constructor
     public client(){
-        
+        pubKey = null;
     }
     
 	//TODO: encrypt method for user message
@@ -96,19 +102,43 @@ class client {
             return null;
         }
     }
+    
+    //set Public key
+    public void setPublicKey(String filename){
+        try{
+            File f = new File(filename);
+            FileInputStream fs = new FileInputStream(f);
+            byte[] keybytes = new byte[(int)f.length()];
+            fs.read(keybytes);
+            fs.close();
+            X509EncodedKeySpec keyspec = new X509EncodedKeySpec(keybytes);
+            KeyFactory rsafactory = KeyFactory.getInstance("RSA");
+            pubKey = rsafactory.generatePublic(keyspec);
+        }catch(Exception e){
+            System.out.println("Public Key Exception");
+            System.exit(1);
+        }
+    }
+
 
 }
 
 class OutputHandler implements Runnable {
 	
     //Secret key to send to server
-    private SecretKey OutSecretKey;
+    byte[] OutSecretKey;
+    
+    //public key
+    private PublicKey pubKey;
+    
+    boolean doOnce = false;
+    
     
 	Socket clientSocket;
-	OutputHandler(Socket connection, SecretKey secret) {
+	OutputHandler(Socket connection, PublicKey pKey, byte[] s) {
 		clientSocket = connection;
-        OutSecretKey = secret;
-        
+        pubKey = pKey;
+        OutSecretKey = s;
 	}
 	
 	/*******************************************************************
@@ -120,7 +150,10 @@ class OutputHandler implements Runnable {
 			BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 			DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             
-            
+            if(doOnce == false){
+                outToServer.write(OutSecretKey, 0, OutSecretKey.length);
+                doOnce = true;
+            }
             
 			while(true){
 					
@@ -136,8 +169,8 @@ class OutputHandler implements Runnable {
 			
 		}
 	}
-
-	//TODO: encrypt method
+    
+	//encrypt method
     public byte[] encrypt(byte[] plaintext, SecretKey secKey, IvParameterSpec iv){
         try{
             Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -163,11 +196,7 @@ class InputHandler implements Runnable {
 			+ "k USERNAME kicks out the requested user \n"
 			+ "h lists this set of commands again \n";
 	
-    /** Public key received from server **/
-    private PublicKey pubKey;
-    boolean firstMessage = false;
-    
-	Socket clientSocket;
+   	Socket clientSocket;
 	InputHandler(Socket connection) {
 		clientSocket = connection;
 	}
@@ -183,12 +212,6 @@ class InputHandler implements Runnable {
 		
 			while(true){
                 
-                //First message received is public key, then go on like normal
-                if(firstMessage == false){
-                    //get public key
-                    //this might require an ObjectInputReader
-                    firstMessage == true;
-                }
 				
 				// TODO: decrypt message
 				String recvMessage = inFromServer.readLine();
