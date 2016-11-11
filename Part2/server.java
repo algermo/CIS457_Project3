@@ -122,23 +122,24 @@ class ClientHandler implements Runnable {
 			DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			
+            if(gotUsername == true){
+                if(firstReceive == true){
+                    InputStream is = clientSocket.getInputStream();
+                    //receive encrypted key from client
+                    //TODO: See if the byte array needs a specific size
+                    byte[] sKeyEncrypted = new byte[100];
+                    int count = is.read(sKeyEncrypted);
+                    
+                    //decrypt key using private key
+                    byte[] sKeyDecrypted = RSADecrypt(sKeyEncrypted);
+                    sKey = new SecretKeySpec(sKeyDecrypted, "AES");
+                    firstReceive = false;
+                }
+            }
+
+            
 			while(clientSocket.isConnected()){
             
-                if(gotUsername == true){
-                    if(firstReceive == true){
-                        InputStream is = clientSocket.getInputStream();
-                        //receive encrypted key from client
-                        //TODO: See if the byte array needs a specific size
-                        byte[] sKeyEncrypted = new byte[100];
-                        int count = is.read(sKeyEncrypted);
-                        
-                        //decrypt key using private key
-                        byte[] sKeyDecrypted = RSADecrypt(sKeyEncrypted);
-                        sKey = new SecretKeySpec(sKeyDecrypted, "AES");
-                        firstReceive = false;
-                    }
-                }
-                
                 
 				// TODO: decrpyt the message received
 				
