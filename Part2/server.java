@@ -101,6 +101,7 @@ class ClientHandler implements Runnable {
     SecretKey sKey;
 
     boolean firstReceive = true;
+    boolean gotUsername = false;
 
 	Socket clientSocket;
 	ClientHandler(Socket connection, ConcurrentHashMap <String, Socket> clients, PublicKey pbKey, PrivateKey pvKey) {
@@ -123,17 +124,19 @@ class ClientHandler implements Runnable {
 			
 			while(clientSocket.isConnected()){
             
-                if(firstReceive == true){
-                    InputStream is = clientSocket.getInputStream();
-                    //receive encrypted key from client
-                    //TODO: See if the byte array needs a specific size
-                    byte[] sKeyEncrypted = new byte[100];
-                    int count = is.read(sKeyEncrypted);
-                    
-                    //decrypt key using private key
-                    byte[] sKeyDecrypted = RSADecrypt(sKeyEncrypted);
-                    sKey = new SecretKeySpec(sKeyDecrypted, "AES");
-                    firstReceive = false;
+                if(gotUsername == true){
+                    if(firstReceive == true){
+                        InputStream is = clientSocket.getInputStream();
+                        //receive encrypted key from client
+                        //TODO: See if the byte array needs a specific size
+                        byte[] sKeyEncrypted = new byte[100];
+                        int count = is.read(sKeyEncrypted);
+                        
+                        //decrypt key using private key
+                        byte[] sKeyDecrypted = RSADecrypt(sKeyEncrypted);
+                        sKey = new SecretKeySpec(sKeyDecrypted, "AES");
+                        firstReceive = false;
+                    }
                 }
                 
                 
@@ -324,6 +327,7 @@ class ClientHandler implements Runnable {
 		
 		// set this thread's user
 		user = username;
+        gotUsername = true;
 	}
 
 	/*******************************************************************
