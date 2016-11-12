@@ -35,24 +35,37 @@ class client {
         
         //Encrypt secret key
         byte sKeyEncrypted[] = c.RSAEncrypt(sKey.getEncoded());
+
+		SecureRandom r = new SecureRandom();
+		byte ivbytes[] = new byte[16];
+		r.nextBytes(ivbytes);
+		IvParameterSpec iv = new IvParameterSpec(ivbytes);
         
 		Socket clientSocket = new Socket("127.0.0.1", 9876);
 		
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 
+		//Send iv
+		outToServer.write(ivbytes, 0, ivbytes.length);		
+
+		//Send key
 		outToServer.write(sKeyEncrypted, 0, sKeyEncrypted.length);
-		System.out.println(sKeyEncrypted);
+
 
 		//TODO: encrypt user info
 		//request a username from the client and send it to the server
         System.out.println("Enter a username: ");
 		username = inFromUser.readLine();
-		outToServer.writeBytes("u " + username + "\n");
+		username = "u " + username +"\n";
+		byte[] encryptedUser = c.encrypt(username.getBytes(),sKey,iv);
+		System.out.printf("Encrpyted message: %s%n",DatatypeConverter.printHexBinary(encryptedUser));
+ 
+		outToServer.write(encryptedUser, 0, encryptedUser.length);
 
 		// run threads for output to server and input from server
-		Runnable out = new OutputHandler(clientSocket, pubKey, sKeyEncrypted);
-		Runnable in = new InputHandler(clientSocket);
+		Runnable out = new OutputHandler(clientSocket, pubKey, sKeyEncrypted, iv, sKey);
+		Runnable in = new InputHandler(clientSocket, iv, sKey);
 		Thread outputThread = new Thread(out);
 		Thread inputThread = new Thread(in);
 		outputThread.start();
@@ -136,13 +149,19 @@ class OutputHandler implements Runnable {
     private PublicKey pubKey;
     
     boolean doOnce = false;
+	
+	IvParameterSpec iv;
+
+	SecretKey sKey;
     
     
 	Socket clientSocket;
-	OutputHandler(Socket connection, PublicKey pKey, byte[] s) {
+	OutputHandler(Socket connection, PublicKey pKey, byte[] s, IvParameterSpec ivIn, SecretKey sk) {
 		clientSocket = connection;
         pubKey = pKey;
         OutSecretKey = s;
+		iv = ivIn;
+		sKey = sk;
 	}
 	
 	/*******************************************************************
@@ -164,7 +183,8 @@ class OutputHandler implements Runnable {
 					
 				// TODO: encrypt message
 				String message = inFromUser.readLine();
-				outToServer.writeBytes(message + '\n');
+				byte[] encryptedMessage = encrypt(message.getBytes(),sKey,iv);
+				outToServer.write(encryptedMessage, 0, encryptedMessage.length);
 	
 			}
 		} catch (Exception e) {
@@ -192,6 +212,9 @@ class OutputHandler implements Runnable {
 }
 
 class InputHandler implements Runnable {
+
+	IvParameterSpec iv;
+	SecretKey sKey;
 	
 	/** List of commands available to user **/
 	public static String cmd = "Q logs you out\n"
@@ -202,8 +225,10 @@ class InputHandler implements Runnable {
 			+ "h lists this set of commands again \n";
 	
    	Socket clientSocket;
-	InputHandler(Socket connection) {
+	InputHandler(Socket connection, IvParameterSpec ivIn, SecretKey sk) {
 		clientSocket = connection;
+		iv = ivIn;
+		sKey = sk;
 	}
 	
 	/*******************************************************************
@@ -219,7 +244,10 @@ class InputHandler implements Runnable {
                 
 				
 				// TODO: decrypt message
-				String recvMessage = inFromServer.readLine();
+				String message = inFromServer.readLine();
+				byte[] recvMessageDecrypted = decrypt(message.getBytes(), sKey, iv);
+				String recvMessage = new String(recvMessageDecrypted);
+				System.out.println(recvMessage);
 				if(recvMessage.equals("help")) {
 					System.out.println(cmd);
 				} else {
@@ -237,7 +265,7 @@ class InputHandler implements Runnable {
 			
 		}
 	}
-	//TODO: Decrypt method
+	//Decrypt method
     public byte[] decrypt(byte[] ciphertext, SecretKey secKey, IvParameterSpec iv){
         try{
             Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -245,7 +273,7 @@ class InputHandler implements Runnable {
             byte[] plaintext = c.doFinal(ciphertext);
             return plaintext;
         }catch(Exception e){
-            System.out.println("AES Decrypt Exception");
+            System.out.println("AES Decrypt Exception" + e);
             System.exit(1);
             return null;
         }

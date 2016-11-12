@@ -31,6 +31,7 @@ class server {
         s.setPublicKey("RSApub.der");
         
 		ServerSocket listenSocket = new ServerSocket(9876);
+
 		
 		while(true) {
 
@@ -101,7 +102,11 @@ class ClientHandler implements Runnable {
     SecretKey sKey;
 
     boolean firstReceive = true;
-    boolean gotUsername = false;
+    boolean secondReceive = false;
+
+	IvParameterSpec iv;
+
+	
 
 	Socket clientSocket;
 	ClientHandler(Socket connection, ConcurrentHashMap <String, Socket> clients, PublicKey pbKey, PrivateKey pvKey) {
@@ -112,43 +117,64 @@ class ClientHandler implements Runnable {
 	}
 		
 
-	/******************************************************s*************
+	/*******************************************************************
 	 * Runs the client thread
 	 ******************************************************************/
 	public void run() {
 		
 		try {
+
 			
 			DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-			inFromClient.mark(100);			
+			InputStream is = clientSocket.getInputStream();
+			
+			if(firstReceive == true){
+				System.out.println("Reading iv");
+				byte ivbytes[] = new byte[16];
+				int ivCount = is.read(ivbytes);
+				System.out.println("Bytes read for iv: " + ivCount);
+				iv = new IvParameterSpec(ivbytes);
+				firstReceive = false;
+				secondReceive = true;
+			}
 		
-                if(firstReceive == true){
-					System.out.println("Reading key \n");
-                    InputStream is = clientSocket.getInputStream();
+				//Get key
+                if(secondReceive == true){
+					System.out.println("Reading key");
+                  //  InputStream is = clientSocket.getInputStream();
                     //receive encrypted key from client
                     //TODO: See if the byte array needs a specific size
-                    byte[] sKeyEncrypted = new byte[256];
-                    int count = is.read(sKeyEncrypted);
-					System.out.println("Bytes read for key: " + count);
+                    byte sKeyEncrypted[] = new byte[256];
+                    int keyCount = is.read(sKeyEncrypted);
+					System.out.println("Bytes read for key: " + keyCount);
                     
                     //decrypt key using private key
-					System.out.println(sKeyEncrypted);
-                    byte[] sKeyDecrypted = RSADecrypt(sKeyEncrypted);
+                    byte sKeyDecrypted[] = RSADecrypt(sKeyEncrypted);
                     sKey = new SecretKeySpec(sKeyDecrypted, "AES");
-                    firstReceive = false;
+					secondReceive = false;
 
                 }
 
             
 			while(clientSocket.isConnected()){
             
+
                 
 				// TODO: decrpyt the message received
 				
 				// receive message from user
 
-				String message = inFromClient.readLine();
+				//String message = inFromClient.readLine();
+
+				byte userEncrypted[] = new byte[16];
+				int userCount = is.read(userEncrypted);
+				System.out.printf("Encrpyted message: %s%n",DatatypeConverter.printHexBinary(userEncrypted));
+				System.out.println("bytes read for user: " + userCount);
+				byte userDecrypted[] = decrypt(userEncrypted, sKey, iv);
+				
+				String message = new String(userDecrypted);
+				System.out.println("Decrpyted message: " + message);
 				
 				if(message.equals("") || message.equals(" ")) {
 					// inform user of empty message
@@ -285,7 +311,8 @@ class ClientHandler implements Runnable {
 			
 			// TODO: encrypt message
 			// send message out on this socket
-			outToClient.writeBytes(message + "\n");
+			byte[] singleMessageEncrypted = encrypt(message.getBytes(),sKey,iv);
+			outToClient.write(singleMessageEncrypted, 0 , singleMessageEncrypted.length);
 			
 		} catch (Exception e) {
 			
@@ -333,7 +360,6 @@ class ClientHandler implements Runnable {
 		
 		// set this thread's user
 		user = username;
-        gotUsername = true;
 	}
 
 	/*******************************************************************
@@ -379,12 +405,13 @@ class ClientHandler implements Runnable {
     
     public byte[] decrypt(byte[] ciphertext, SecretKey secKey, IvParameterSpec iv){
         try{
+			System.out.println("Decrypting message");
             Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
             c.init(Cipher.DECRYPT_MODE,secKey,iv);
             byte[] plaintext = c.doFinal(ciphertext);
             return plaintext;
         }catch(Exception e){
-            System.out.println("AES Decrypt Exception");
+            System.out.println("AES Decrypt Exception" + e.getMessage());
             System.exit(1);
             return null;
         }

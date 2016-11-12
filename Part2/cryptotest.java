@@ -21,10 +21,14 @@ class cryptotest{
 		IvParameterSpec iv = new IvParameterSpec(ivbytes);
 		String plaintext = "This is a test string to encrypt";
 		byte ciphertext[] = c.encrypt(plaintext.getBytes(),s,iv);
+		System.out.println(ciphertext);
 		System.out.printf("CipherText: %s%n",DatatypeConverter.printHexBinary(ciphertext));
+		System.out.println(ciphertext);
 		byte decryptedsecret[] = c.RSADecrypt(encryptedsecret);
 		SecretKey ds = new SecretKeySpec(decryptedsecret,"AES");
+		System.out.println(ds);
 		byte decryptedplaintext[] = c.decrypt(ciphertext,ds,iv);
+		System.out.println(ciphertext);
 		String dpt = new String(decryptedplaintext);
 		System.out.printf("PlainText: %s%n",dpt);
     }
