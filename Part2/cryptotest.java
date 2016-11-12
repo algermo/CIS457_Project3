@@ -14,6 +14,7 @@ class cryptotest{
 		c.setPublicKey("RSApub.der");
 		SecretKey s = c.generateAESKey();
 		byte encryptedsecret[] = c.RSAEncrypt(s.getEncoded());
+		System.out.println(encryptedsecret);
 		SecureRandom r = new SecureRandom();
 		byte ivbytes[] = new byte[16];
 		r.nextBytes(ivbytes);

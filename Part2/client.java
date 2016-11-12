@@ -40,6 +40,10 @@ class client {
 		
 		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 		DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+
+		outToServer.write(sKeyEncrypted, 0, sKeyEncrypted.length);
+		System.out.println(sKeyEncrypted);
+
 		//TODO: encrypt user info
 		//request a username from the client and send it to the server
         System.out.println("Enter a username: ");
@@ -150,10 +154,11 @@ class OutputHandler implements Runnable {
 			BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 			DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             
-            if(doOnce == false){
+           /* if(doOnce == false){
                 outToServer.write(OutSecretKey, 0, OutSecretKey.length);
+				outToServer.flush();
                 doOnce = true;
-            }
+            }*/
             
 			while(true){
 					

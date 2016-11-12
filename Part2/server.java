@@ -112,7 +112,7 @@ class ClientHandler implements Runnable {
 	}
 		
 
-	/*******************************************************************
+	/******************************************************s*************
 	 * Runs the client thread
 	 ******************************************************************/
 	public void run() {
@@ -121,21 +121,24 @@ class ClientHandler implements Runnable {
 			
 			DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-			
-            if(gotUsername == true){
+			inFromClient.mark(100);			
+		
                 if(firstReceive == true){
+					System.out.println("Reading key \n");
                     InputStream is = clientSocket.getInputStream();
                     //receive encrypted key from client
                     //TODO: See if the byte array needs a specific size
-                    byte[] sKeyEncrypted = new byte[100];
+                    byte[] sKeyEncrypted = new byte[256];
                     int count = is.read(sKeyEncrypted);
+					System.out.println("Bytes read for key: " + count);
                     
                     //decrypt key using private key
+					System.out.println(sKeyEncrypted);
                     byte[] sKeyDecrypted = RSADecrypt(sKeyEncrypted);
                     sKey = new SecretKeySpec(sKeyDecrypted, "AES");
                     firstReceive = false;
+
                 }
-            }
 
             
 			while(clientSocket.isConnected()){
@@ -144,6 +147,7 @@ class ClientHandler implements Runnable {
 				// TODO: decrpyt the message received
 				
 				// receive message from user
+
 				String message = inFromClient.readLine();
 				
 				if(message.equals("") || message.equals(" ")) {
@@ -152,6 +156,7 @@ class ClientHandler implements Runnable {
 					singleMessage(user, emptyCmd);
 				} else {
 					// process the message the user sent
+					System.out.println(message);
 					processCommand(message);
 				}
 
