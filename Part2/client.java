@@ -57,7 +57,7 @@ class client {
 		//request a username from the client and send it to the server
         System.out.println("Enter a username: ");
 		username = inFromUser.readLine();
-		username = "u " + username +"\n";
+		username = "u " + username;
 		byte[] encryptedUser = c.encrypt(username.getBytes(),sKey,iv);
 		System.out.printf("Encrpyted message: %s%n",DatatypeConverter.printHexBinary(encryptedUser));
  

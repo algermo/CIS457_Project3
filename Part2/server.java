@@ -243,6 +243,8 @@ class ClientHandler implements Runnable {
 					// send single message to user
 					username = com[1];
 					message = user + ": " + command.substring(3 + username.length(), command.length());
+					System.out.println(user);
+					System.out.println(message);
 					singleMessage(username, message);
 					break;
 				case "c":
@@ -312,6 +314,7 @@ class ClientHandler implements Runnable {
 			// TODO: encrypt message
 			// send message out on this socket
 			byte[] singleMessageEncrypted = encrypt(message.getBytes(),sKey,iv);
+			System.out.println("Sendng singleMessage");
 			outToClient.write(singleMessageEncrypted, 0 , singleMessageEncrypted.length);
 			
 		} catch (Exception e) {
