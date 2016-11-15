@@ -17,11 +17,15 @@ import java.security.spec.*;
 import javax.xml.bind.DatatypeConverter;
 
 class server {
+	
+	/** public and private keys for crytography **/
     private static PrivateKey privKey;
     private static PublicKey pubKey;
 
-	
+	/** Hashmap containing the connected clients (keys = client usernames) **/
     public static ConcurrentHashMap <String, Socket> clientList = new ConcurrentHashMap<String, Socket>();
+	
+	/** Hashmap containing keys for each client **/
 	public static ConcurrentHashMap <String, SecretKey> keyList = new ConcurrentHashMap<String, SecretKey>();
 
 	public static void main(String args[]) throws Exception {
@@ -44,13 +48,20 @@ class server {
 		}
 
 	}
-    //constructor method
+    
+	/*******************************************************************
+	 * Constructor for the server
+	 ******************************************************************/
     public server(){
         privKey = null;
         pubKey = null;
         
     }
-    //Set public key
+    
+	/*******************************************************************
+	 * Sets the public key for the server
+	 * @param filename String for where to receive the key from
+	 ******************************************************************/
     public void setPublicKey(String filename){
         try{
             File f = new File(filename);
@@ -61,13 +72,16 @@ class server {
             X509EncodedKeySpec keyspec = new X509EncodedKeySpec(keybytes);
             KeyFactory rsafactory = KeyFactory.getInstance("RSA");
             pubKey = rsafactory.generatePublic(keyspec);
-        }catch(Exception e){
+        } catch(Exception e){
             System.out.println("Public Key Exception");
             System.exit(1);
         }
     }
     
-    //Set private key
+    /*******************************************************************
+	 * Sets the private key for the server
+	 * @param filename String for where to receive the key from
+	 ******************************************************************/
     public void setPrivateKey(String filename){
         try{
             File f = new File(filename);
@@ -91,6 +105,7 @@ class ClientHandler implements Runnable {
 	/** Hashmap containing the connected clients (keys = client usernames) **/
     public ConcurrentHashMap <String, Socket> clientList = new ConcurrentHashMap<String, Socket>();
 
+	/** Hashmap containing keys for each client **/
 	public static ConcurrentHashMap <String, SecretKey> keyList = new ConcurrentHashMap<String, SecretKey>();
 	
 	/** The username of the client connected on this thread **/
@@ -102,16 +117,22 @@ class ClientHandler implements Runnable {
     /**Private key to use for decryption**/
     private PrivateKey privKey;
     
+	/** secret key for crytography **/
     SecretKey sKey;
 
+	/** flags for determining order of first two messages **/
     boolean firstReceive = true;
     boolean secondReceive = false;
 
+	/** initialization vector **/
 	IvParameterSpec iv;
 
-	
-
+	/** the socket the client is connected on **/
 	Socket clientSocket;
+	
+	/*******************************************************************
+	 * Constructor for the ClientHandler
+	 ******************************************************************/
 	ClientHandler(Socket connection, ConcurrentHashMap <String, Socket> clients, PublicKey pbKey, PrivateKey pvKey, ConcurrentHashMap <String, SecretKey> keys) {
 		clientSocket = connection;
         clientList = clients;
@@ -120,7 +141,6 @@ class ClientHandler implements Runnable {
 		keyList = keys;
 	}
 		
-
 	/*******************************************************************
 	 * Runs the client thread
 	 ******************************************************************/
@@ -128,14 +148,11 @@ class ClientHandler implements Runnable {
 		
 		try {
 
-			
 			DataOutputStream outToClient = new DataOutputStream(clientSocket.getOutputStream());
 			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			InputStream is = clientSocket.getInputStream();
-
-			//outToClient.writeBytes("Welcome");
 			
-			//Get IV
+			// get IV from client
 			if(firstReceive == true){
 				System.out.println("Reading iv");
 				byte ivbytes[] = new byte[16];
@@ -146,43 +163,33 @@ class ClientHandler implements Runnable {
 				secondReceive = true;
 			}
 		
-				//Get key
-                if(secondReceive == true){
-					System.out.println("Reading key");
-                  //  InputStream is = clientSocket.getInputStream();
-                    //receive encrypted key from client
-                    //TODO: See if the byte array needs a specific size
-                    byte sKeyEncrypted[] = new byte[256];
-                    int keyCount = is.read(sKeyEncrypted);
-					System.out.println("Bytes read for key: " + keyCount);
-                    
-                    //decrypt key using private key
-                    byte sKeyDecrypted[] = RSADecrypt(sKeyEncrypted);
-                    sKey = new SecretKeySpec(sKeyDecrypted, "AES");
-					secondReceive = false;
-                }
-
-            
-			while(clientSocket.isConnected()){
-            
-
-                
-				// TODO: decrpyt the message received
+			// get symmetric key from client
+			if(secondReceive == true){
+				System.out.println("Reading key");
+			  //  InputStream is = clientSocket.getInputStream();
+				//receive encrypted key from client
+				//TODO: See if the byte array needs a specific size
+				byte sKeyEncrypted[] = new byte[256];
+				int keyCount = is.read(sKeyEncrypted);
+				System.out.println("Bytes read for key: " + keyCount);
 				
+				//decrypt key using private key
+				byte sKeyDecrypted[] = RSADecrypt(sKeyEncrypted);
+				sKey = new SecretKeySpec(sKeyDecrypted, "AES");
+				secondReceive = false;
+			}
+
+			while(clientSocket.isConnected()){
 				// receive message from user
-
-				//String message = inFromClient.readLine();
-
-				//TODO: seperate receiving username and message
 				byte userEncrypted[] = new byte[16];
 				int userCount = is.read(userEncrypted);
 				if(userCount < 0){
 					continue;
 				}
 				System.out.printf("Encrypted message received: %s%n",DatatypeConverter.printHexBinary(userEncrypted));
-				System.out.println("bytes read for user: " + userCount);
-				System.out.println("sKey: " + sKey);
-				System.out.println("iv: " + iv);
+				//System.out.println("bytes read for user: " + userCount);
+				//System.out.println("sKey: " + sKey);
+				//System.out.println("iv: " + iv);
 				byte userDecrypted[] = decrypt(userEncrypted, sKey, iv);
 				
 				String message = new String(userDecrypted);
@@ -213,14 +220,12 @@ class ClientHandler implements Runnable {
 	
 	/*******************************************************************
 	 * Processes the command given by the client
-	 * 
 	 * @param command the client's command and any associated messages
 	 ******************************************************************/
 	public void processCommand(String command) {
 		
 		String username;
 		String message;
-
 
 		String[] com = command.split(" ");
 		
@@ -283,7 +288,6 @@ class ClientHandler implements Runnable {
 
 	/*******************************************************************
 	 * Broadcasts the client's message to all connected clients
-	 * 
 	 * @param message the message being broadcasted
 	 ******************************************************************/
 	public void broadcast(String message) {
@@ -310,7 +314,6 @@ class ClientHandler implements Runnable {
 	/*******************************************************************
 	 * Sends a single message from the client to another specified and
 	 * connected client
-	 * 
 	 * @param username the user to receive the message
 	 * @param message the single message being sent
 	 ******************************************************************/
@@ -330,9 +333,9 @@ class ClientHandler implements Runnable {
 			// send message out on this socket
 			System.out.println(message);
 			byte[] singleMessageEncrypted = encrypt(message.getBytes(),userKey,iv);
-			System.out.println("sKey: " + userKey);
-			System.out.println("iv: " + iv);
-			System.out.println("Sendng singleMessage");
+			//System.out.println("sKey: " + userKey);
+			//System.out.println("iv: " + iv);
+			System.out.println("Sending singleMessage");
 			System.out.printf("Encrpyted message sent: %s%n",DatatypeConverter.printHexBinary(singleMessageEncrypted));
 			outToClient.write(singleMessageEncrypted, 0 , singleMessageEncrypted.length);
 			outToClient.flush();
@@ -347,7 +350,6 @@ class ClientHandler implements Runnable {
 
 	/*******************************************************************
 	 * Gets the list of connected clients
-	 * 
 	 * @return String the list of connected clients
 	 ******************************************************************/
 	public String getClientList() {
@@ -373,7 +375,6 @@ class ClientHandler implements Runnable {
 	
 	/*******************************************************************
 	 * Adds a user to the HashMap of connected clients
-	 * 
 	 * @param username the username of the client to be added
 	 ******************************************************************/
 	public void addUser(String username) {
@@ -389,7 +390,6 @@ class ClientHandler implements Runnable {
 
 	/*******************************************************************
 	 * Disconnects the client socket with the associated username
-	 * 
 	 * @param username the username of the client to be disconnected
 	 ******************************************************************/
 	public void kickUser(String username) {
@@ -414,7 +414,13 @@ class ClientHandler implements Runnable {
 		clientList.remove(username);
 		System.out.println(username + " signed out. \n");
 	}
-	//TODO: Encrypt and Decrypt methods
+	
+	/*******************************************************************
+	 * Encrypts messages for the client
+	 * @param plaintext message to encrypt
+	 * @param secKey the symmetric key
+	 * @param iv initialization vector
+	 ******************************************************************/
     public byte[] encrypt(byte[] plaintext, SecretKey secKey, IvParameterSpec iv){
         try{
 			System.out.println("Encrypting message");
@@ -429,6 +435,12 @@ class ClientHandler implements Runnable {
         }
     }
     
+	/*******************************************************************
+	 * Decrypts messages from the client
+	 * @param ciphertext message to decrypt
+	 * @param secKey the symmetric key
+	 * @param iv initialization vector
+	 ******************************************************************/
     public byte[] decrypt(byte[] ciphertext, SecretKey secKey, IvParameterSpec iv){
         try{
 			System.out.println("Decrypting message");
@@ -443,7 +455,10 @@ class ClientHandler implements Runnable {
         }
     }
 
-	//TODO: RSA Decrypt key
+	/*******************************************************************
+	 * Decrypts the symmetric key
+	 * @param ciphertext the key to decrypt
+	 ******************************************************************/
     public byte[] RSADecrypt(byte[] ciphertext){
         try{
             Cipher c = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");

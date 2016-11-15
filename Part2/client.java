@@ -6,7 +6,6 @@
  *
  */
 
-
 import java.io.*;
 import java.net.*;
 import java.awt.*;
@@ -75,12 +74,19 @@ class client {
 		
 	}
     
-    //constructor
+    /*******************************************************************
+	 * Constructor for the client
+	 ******************************************************************/
     public client(){
         pubKey = null;
     }
     
-	//TODO: encrypt method for user message
+	/*******************************************************************
+	 * Encrypts messages for the server
+	 * @param plaintext message to encrypt
+	 * @param secKey the symmetric key
+	 * @param iv initialization vector
+	 ******************************************************************/
     public byte[] encrypt(byte[] plaintext, SecretKey secKey, IvParameterSpec iv){
         try{
             Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -94,7 +100,10 @@ class client {
         }
     }
 
-	//TODO: RSA Encrypt key
+	/*******************************************************************
+	 * Encrypts the symmetric key
+	 * @param plaintext the key to encrypt
+	 ******************************************************************/
     public byte[] RSAEncrypt(byte[] plaintext){
         try{
             Cipher c = Cipher.getInstance("RSA/ECB/OAEPWithSHA-1AndMGF1Padding");
@@ -108,7 +117,9 @@ class client {
         }
     }
 
-	//TODO: Generate key method
+	/*******************************************************************
+	 * Generates the AES key (symmetric key)
+	 ******************************************************************/
     public SecretKey generateAESKey(){
         try{
             KeyGenerator keyGen = KeyGenerator.getInstance("AES");
@@ -122,7 +133,10 @@ class client {
         }
     }
     
-    //set Public key
+    /*******************************************************************
+	 * Sets the public key for the server
+	 * @param filename String for where to receive the key from
+	 ******************************************************************/
     public void setPublicKey(String filename){
         try{
             File f = new File(filename);
@@ -144,20 +158,24 @@ class client {
 
 class OutputHandler implements Runnable {
 	
-    //Secret key to send to server
+    /** secret key to send to server **/
     byte[] OutSecretKey;
+	SecretKey sKey;
     
-    //public key
+    /** Public key to send to server **/
     private PublicKey pubKey;
     
     boolean doOnce = false;
 	
+	/** initialization vector **/
 	IvParameterSpec iv;
 
-	SecretKey sKey;
-    
-    
+	/** the socket the client is connected on **/
 	Socket clientSocket;
+	
+	/*******************************************************************
+	 * Constructor for the OutputHandler
+	 ******************************************************************/
 	OutputHandler(Socket connection, PublicKey pKey, byte[] s, byte[] ivIn, SecretKey sk) {
 		clientSocket = connection;
         pubKey = pKey;
@@ -172,18 +190,12 @@ class OutputHandler implements Runnable {
 	 ******************************************************************/
 	public void run() {
 		try {
+			
 			BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 			DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
             
-           /* if(doOnce == false){
-                outToServer.write(OutSecretKey, 0, OutSecretKey.length);
-				outToServer.flush();
-                doOnce = true;
-            }*/
-            
 			while(true){
-					
-				// TODO: encrypt message
+
 				String message = inFromUser.readLine();
 				if(message != null){
 					System.out.println("sKey: " + sKey);
@@ -193,7 +205,6 @@ class OutputHandler implements Runnable {
 					outToServer.write(encryptedMessage, 0, encryptedMessage.length);
 					outToServer.flush();
 				}
-	
 			}
 		} catch (Exception e) {
 			
@@ -203,7 +214,12 @@ class OutputHandler implements Runnable {
 		}
 	}
     
-	//encrypt method
+	/*******************************************************************
+	 * Encrypts messages for the server
+	 * @param plaintext message to encrypt
+	 * @param secKey the symmetric key
+	 * @param iv initialization vector
+	 ******************************************************************/
     public byte[] encrypt(byte[] plaintext, SecretKey secKey, IvParameterSpec iv){
         try{
             Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
@@ -221,7 +237,10 @@ class OutputHandler implements Runnable {
 
 class InputHandler implements Runnable {
 
+	/** initialization vector **/
 	IvParameterSpec iv;
+	
+	/** secret key for crytography **/
 	SecretKey sKey;
 	
 	/** List of commands available to user **/
@@ -232,7 +251,12 @@ class InputHandler implements Runnable {
 			+ "k USERNAME kicks out the requested user \n"
 			+ "h lists this set of commands again \n";
 	
+	/** the socket the client is connected on **/
    	Socket clientSocket;
+	
+	/*******************************************************************
+	 * Constructor for the InputHandler
+	 ******************************************************************/
 	InputHandler(Socket connection, byte[] ivIn, SecretKey sk) {
 		clientSocket = connection;
 		iv = new IvParameterSpec(ivIn);
@@ -251,10 +275,7 @@ class InputHandler implements Runnable {
 		
 			while(true){
                 
-				
-				// TODO: decrypt message
 				byte serverEncrypted[] = new byte[16];
-				//String message = inFromServer.readLine();
 
 				int serverCount = is.read(serverEncrypted);
 				if( serverCount < 0){
@@ -287,7 +308,13 @@ class InputHandler implements Runnable {
 			
 		}
 	}
-	//Decrypt method
+	
+	/*******************************************************************
+	 * Decrypts messages from the server
+	 * @param ciphertext message to decrypt
+	 * @param secKey the symmetric key
+	 * @param iv initialization vector
+	 ******************************************************************/
     public byte[] decrypt(byte[] ciphertext, SecretKey secKey, IvParameterSpec iv){
         try{
             Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
