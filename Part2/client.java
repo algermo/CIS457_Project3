@@ -58,14 +58,16 @@ class client {
         System.out.println("Enter a username: ");
 		username = inFromUser.readLine();
 		username = "u " + username;
+		System.out.println("sKey: " + sKey);
+		System.out.println("iv: " + iv);
 		byte[] encryptedUser = c.encrypt(username.getBytes(),sKey,iv);
-		System.out.printf("Encrpyted message: %s%n",DatatypeConverter.printHexBinary(encryptedUser));
+		System.out.printf("Encrpyted message username: %s%n",DatatypeConverter.printHexBinary(encryptedUser));
  
 		outToServer.write(encryptedUser, 0, encryptedUser.length);
 
 		// run threads for output to server and input from server
-		Runnable out = new OutputHandler(clientSocket, pubKey, sKeyEncrypted, iv, sKey);
-		Runnable in = new InputHandler(clientSocket, iv, sKey);
+		Runnable out = new OutputHandler(clientSocket, pubKey, sKeyEncrypted, ivbytes, sKey);
+		Runnable in = new InputHandler(clientSocket, ivbytes, sKey);
 		Thread outputThread = new Thread(out);
 		Thread inputThread = new Thread(in);
 		outputThread.start();
@@ -156,11 +158,11 @@ class OutputHandler implements Runnable {
     
     
 	Socket clientSocket;
-	OutputHandler(Socket connection, PublicKey pKey, byte[] s, IvParameterSpec ivIn, SecretKey sk) {
+	OutputHandler(Socket connection, PublicKey pKey, byte[] s, byte[] ivIn, SecretKey sk) {
 		clientSocket = connection;
         pubKey = pKey;
         OutSecretKey = s;
-		iv = ivIn;
+		iv = new IvParameterSpec(ivIn);
 		sKey = sk;
 	}
 	
@@ -183,8 +185,14 @@ class OutputHandler implements Runnable {
 					
 				// TODO: encrypt message
 				String message = inFromUser.readLine();
-				byte[] encryptedMessage = encrypt(message.getBytes(),sKey,iv);
-				outToServer.write(encryptedMessage, 0, encryptedMessage.length);
+				if(message != null){
+					System.out.println("sKey: " + sKey);
+					System.out.println("Iv encrypt: " + iv);
+					byte[] encryptedMessage = encrypt(message.getBytes(),sKey,iv);
+					System.out.println("writing to server");
+					outToServer.write(encryptedMessage, 0, encryptedMessage.length);
+					outToServer.flush();
+				}
 	
 			}
 		} catch (Exception e) {
@@ -225,9 +233,9 @@ class InputHandler implements Runnable {
 			+ "h lists this set of commands again \n";
 	
    	Socket clientSocket;
-	InputHandler(Socket connection, IvParameterSpec ivIn, SecretKey sk) {
+	InputHandler(Socket connection, byte[] ivIn, SecretKey sk) {
 		clientSocket = connection;
-		iv = ivIn;
+		iv = new IvParameterSpec(ivIn);
 		sKey = sk;
 	}
 	
@@ -239,23 +247,37 @@ class InputHandler implements Runnable {
 		try {
 	
 			BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+			InputStream is = clientSocket.getInputStream();
 		
 			while(true){
                 
 				
 				// TODO: decrypt message
-				String message = inFromServer.readLine();
-				byte[] recvMessageDecrypted = decrypt(message.getBytes(), sKey, iv);
-				String recvMessage = new String(recvMessageDecrypted);
-				System.out.println(recvMessage);
-				if(recvMessage.equals("help")) {
+				byte serverEncrypted[] = new byte[16];
+				//String message = inFromServer.readLine();
+
+				int serverCount = is.read(serverEncrypted);
+				if( serverCount < 0){
+					continue;
+				}
+
+				System.out.println("Bytes read from server: " + serverCount);
+				System.out.printf("Encrpyted message received: %s%n",DatatypeConverter.printHexBinary(serverEncrypted));
+
+				System.out.println("sKey: " + sKey);
+				System.out.println("iv decrypt: " + iv);
+				byte serverDecrypted[] = decrypt(serverEncrypted, sKey, iv);
+
+				String message = new String(serverDecrypted);
+				System.out.println("Decrypted message: " + message);
+				if(message.equals("help")) {
 					System.out.println(cmd);
 				} else {
-					if (recvMessage.equals("Q")) {
+					if (message.equals("Q")) {
 						System.out.println("You have been signed out. \n");
 						System.exit(0);
 					}
-					System.out.println(recvMessage);
+					System.out.println(message);
 				}
 			}
 		} catch (Exception e) {
